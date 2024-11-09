@@ -3,7 +3,7 @@
 
 ## Dataset
 
-The dataset for this project is available on [Kaggle]([[https://www.kaggle.com/datasets/tangodelta/api-access-behaviour-anomaly-dataset/data]), 
+The dataset for this project is available on [Kaggle](https://www.kaggle.com/datasets/tangodelta/api-access-behaviour-anomaly-dataset/data), 
 provided by Home Credit, a company dedicated to offering loans to the unbanked population. 
 It contains a variety of valuable data sources, including loan application details, past credit histories from other institutions, and monthly 
 records of previous loans, credit card balances, and payments. These features give us key insights into a client’s financial behavior, 
