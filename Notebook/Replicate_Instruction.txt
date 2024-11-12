@@ -1,0 +1,19 @@
+
+# **Replicate_Instruction.txt**
+
+i. To download the data from Kaggle:  
+   . Use `1_downloadKaggle.ipynb`
+
+ii. To randomly sample 10% of the data:  
+   . Use `2_Data_Sampling.ipynb`
+
+iii. To prepare and conduct exploratory data analysis (EDA):  
+   . Use `3_1_Cleaning_ApplicationData.ipynb`  
+      `3_2_Cleaning_ApplicationData.ipynb`  
+      `4_Cleaning_OtherData.ipynb`
+
+iv. To combine data, apply feature engineering with Featuretools, and reduce dimensionality using FAMD:  
+   . Use `5_FAMD.ipynb`
+
+v. To build and implement the model with parameter tuning: 
+   . Use `6_Model.ipynb`
