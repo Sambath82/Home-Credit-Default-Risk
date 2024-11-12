@@ -828,10 +828,11 @@ def preprocess_and_reduce_features(data, n_components=20, target_variance=0.7):
 
          # Print explained variance by FAMD components
         #print(famd.eigenvalues_summary)
-        #print("Cumulative Variance:", cumulative_variance)
+        print("Number of Components:", n_components)
+        print("Cumulative Variance:", cumulative_variance)
         
         if cumulative_variance < target_variance:
-            n_components += 10  # Increase components by 10 if target variance not reached
+            n_components += 1  # Increase components if target variance not reached
     
     #print(f"Number of components to reach {target_variance*100}% variance: {n_components}")
     data_reduced = pd.DataFrame(famd.fit_transform(data_imputed), index=data.index)
@@ -922,7 +923,7 @@ def preprocess_data_for_split(data, target, impute_strategy='median', scale_rang
     return X, y
 
 
-def evaluate_models3_with_resampling(X, y, test_size=0.3, random_state=45):
+def evaluate_models_with_resampling(X, y, test_size=0.3, random_state=45):
     """
     Splits data, initializes classifiers with different configurations, and evaluates each model.
     
