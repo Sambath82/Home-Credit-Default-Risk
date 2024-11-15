@@ -26,7 +26,7 @@ To achieve this objective, we’ve broken it down into the following five techni
  
 ## Model Selection
 
-![target_dist_sampling](https://github.com/user-attachments/assets/d6b6286a-cc17-4cc6-a214-c1a55400dd15)
+![target_dist_sampling](https://github.com/user-attachments/assets/17e2afae-d13a-4bfd-a71e-507aeef6c466)
 
 We evaluated our models using ROC AUC, as it provides a reliable measure for binary classification tasks—especially when the labels are imbalanced, with the `default` class being the minority. We tested four models: **HistGradientBoosting (HGBT)**, **LightGBM with SMOTE**, **LightGBM with class weighting**, and **CatBoost with class weighting**.
 
