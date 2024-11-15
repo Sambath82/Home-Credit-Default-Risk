@@ -18,12 +18,29 @@ from scipy.stats import boxcox
 from prince import FAMD
 
 # Models
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import HistGradientBoostingClassifier
 from lightgbm import LGBMClassifier
 from catboost import CatBoostClassifier
 from sklearn.metrics import precision_score, recall_score, f1_score, roc_auc_score, classification_report
 from sklearn.model_selection import train_test_split
 from imblearn.over_sampling import SMOTE
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import StratifiedKFold
+from sklearn.utils.class_weight import compute_sample_weight
+from sklearn.model_selection import cross_val_score
+
+import numpy.typing as npt
+import mlflow
+import mlflow.sklearn
+import numpy.typing as npt
+import plotly.express as px
+import optuna
+from optuna import create_study
+from optuna.trial import Trial
+#from optuna.trial import FrozenTrial
+#from optuna.integration.mlflow import MLflowCallback
+from optuna.integration import MLflowCallback
+
 
 # matplotlit and seaborn for visualizations
 import matplotlib.pyplot as plt
@@ -67,9 +84,9 @@ def pie_plot(data, column='TARGET', title='Target Distribution', labels=None, sa
     n_rows, n_columns = data.shape
     data_info = f"Dataset Info:\nColumns: {n_columns}\nRows: {n_rows}"
     
-    # Create a pie chart with a transparent background
+    # Create a pie chart 
     fig, ax = plt.subplots()
-    fig.patch.set_alpha(0.0)  # Transparent background for the figure
+    fig.patch.set_alpha(0.0) 
 
     wedges, texts, autotexts = ax.pie(
         data[column].value_counts(),
@@ -128,7 +145,6 @@ def convert_to_categorical(df, min_unique=2, max_unique=20):
     print(f"Converted columns to categorical: {cols_to_convert}")
     
     return df
-
 
 
 def encode_and_one_hot(df):
@@ -227,7 +243,7 @@ def detect_outliers_iqr_all(df, factor=3):
     """
     # Identify continuous features
     continuous_columns = df.select_dtypes(include=['float64', 'int64']).columns
-    outlier_columns = []  # List to store names of columns with outliers
+    outlier_columns = []  
 
     # Set up for plotting
     num_cols = len(continuous_columns)
@@ -342,9 +358,9 @@ def plot_histogram(data, column, bins=30, title=None, xlabel=None, ylabel='Frequ
     None
         Displays the histogram with customized styling and labels.
     """
-    # Set up figure and transparent background
+    # Set up figure 
     fig, ax = plt.subplots()
-    fig.patch.set_alpha(0.0)  # Transparent background for the figure
+    fig.patch.set_alpha(0.0)  
 
     # Plot histogram
     ax.hist(data[column], bins=bins, color=color, edgecolor=edge_color)
@@ -356,7 +372,7 @@ def plot_histogram(data, column, bins=30, title=None, xlabel=None, ylabel='Frequ
 
     # Style grid and layout
     ax.grid(visible=True, color='grey', linestyle='--', linewidth=0.5)
-    plt.tight_layout()  # Adjust layout for better fit
+    plt.tight_layout()  
 
     # Show plot
     plt.show()
@@ -395,12 +411,12 @@ def plot_selected_histograms(data, features, bins=30, color='skyblue', edge_colo
 
     # Determine grid size for subplots
     num_columns = len(continuous_columns)
-    grid_size = int(num_columns**0.5) + 1  # For a balanced grid layout
+    grid_size = int(num_columns**0.5) + 1  
 
-    # Set up figure with transparent background
+    # Set up figure 
     fig, axes = plt.subplots(grid_size, grid_size, figsize=(15, 10))
-    fig.patch.set_alpha(0.0)  # Transparent background for the figure
-    axes = axes.flatten()  # Flatten the grid for easy indexing
+    fig.patch.set_alpha(0.0) 
+    axes = axes.flatten()  
 
     # Loop through each numeric column and create a histogram
     for i, column in enumerate(continuous_columns):
@@ -517,7 +533,6 @@ def plot_qq_hist(data, columns):
         plt.tight_layout()
         plt.show()
         
-
 
 def kolmogorov_smirnov_test(data, columns, alpha=0.05):
     """
@@ -681,6 +696,44 @@ def get_top_correlations(df, target, top_n=15):
     return combined_column_names
 
 
+def plot_top_correlation_heatmap(df, target, top_n=5):
+    """
+    Plots a heatmap of the top positive and negative correlations with the target feature.
+    
+    Parameters:
+    -----------
+    df : pandas.DataFrame
+        The DataFrame containing the features and target.
+    target : pandas.Series
+        The target variable for correlation calculations.
+    top_n : int, optional (default=5)
+        The number of top positive and negative correlations to include in the heatmap.
+    
+    Returns:
+    --------
+    None
+    """
+
+    # Get the top correlated columns (both positive and negative) based on the target
+    correlated_columns = get_top_correlations(df, target, top_n=top_n)
+    
+    # Create a DataFrame with the selected columns and add the target column
+    correlated_df = df[correlated_columns].copy()  # Select only the correlated columns
+    correlated_df[target.name] = target  # Add the target series as a new column with its name
+    
+    # Create a correlation matrix for the selected columns and the target
+    correlation_matrix = correlated_df.corr()
+
+    # Plot the heatmap
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", center=0, 
+                cbar=True, square=True, linewidths=0.5, alpha=0.8)
+    
+    # Set the plot title
+    plt.title(f'Top {top_n} Positive and Negative Correlations with {target.name}')
+    plt.show()
+
+
 def preprocess_data(df):
     """
     Detects outliers, applies winsorization, and robust scaling for specified columns.
@@ -832,7 +885,7 @@ def preprocess_and_reduce_features(data, n_components=20, target_variance=0.7):
         print("Cumulative Variance:", cumulative_variance)
         
         if cumulative_variance < target_variance:
-            n_components += 1  # Increase components if target variance not reached
+            n_components += 1  
     
     #print(f"Number of components to reach {target_variance*100}% variance: {n_components}")
     data_reduced = pd.DataFrame(famd.fit_transform(data_imputed), index=data.index)
@@ -894,8 +947,8 @@ def preprocess_data_for_split(data, target, impute_strategy='median', scale_rang
 
     Returns:
     --------
-    X : numpy array
-        The preprocessed feature data, ready for model training.
+    X : pandas.DataFrame
+        The preprocessed feature data, ready for model training, with column names preserved.
     y : numpy array
         The target variable data.
     """
@@ -910,9 +963,9 @@ def preprocess_data_for_split(data, target, impute_strategy='median', scale_rang
     data_imputed = imputer.fit_transform(data)
     data_scaled = scaler.fit_transform(data_imputed)
 
-    # Prepare the final X and y
-    X = data_scaled
-    y = target.values if hasattr(target, 'values') else target  # Ensure y is an array
+    # Convert back to DataFrame to preserve column names
+    X = pd.DataFrame(data_scaled, columns=data.columns)
+    y = target.values if hasattr(target, 'values') else target
 
     print(f'Impute strategy for missing values uses {impute_strategy}.')
     print(f'Scale ranges of Data is between {scale_range[0]} and {scale_range[1]}.')
@@ -922,6 +975,13 @@ def preprocess_data_for_split(data, target, impute_strategy='median', scale_rang
     
     return X, y
 
+
+def clean_feature_names(X):
+    """
+    Cleans the feature names by removing special characters.
+    """
+    X.columns = X.columns.str.replace(r'[^a-zA-Z0-9_]', '_', regex=True)
+    return X
 
 def evaluate_models_with_resampling(X, y, test_size=0.3, random_state=45):
     """
@@ -942,12 +1002,16 @@ def evaluate_models_with_resampling(X, y, test_size=0.3, random_state=45):
     --------
     None
     """
-
+    
     # Ensure y is a pandas Series with 1-dimensional before creating a Series
     y = pd.Series(y.squeeze())
-    
+
     # Split data into training and testing sets
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state)
+
+    # Clean feature names to avoid special JSON characters
+    X_train = clean_feature_names(X_train)
+    X_test = clean_feature_names(X_test)
 
     # Calculate class weights and scale_pos_weight based on imbalance ratio
     class_weights = [1, (y_train.value_counts()[0] / y_train.value_counts()[1])]
@@ -958,18 +1022,22 @@ def evaluate_models_with_resampling(X, y, test_size=0.3, random_state=45):
 
     # Define models with their specific configurations
     models = {
-        "Random Forest": RandomForestClassifier(
-            n_estimators=100, 
+        "HGBT": HistGradientBoostingClassifier(
+            learning_rate=0.1,
+            max_iter=100,
+            max_leaf_nodes=31,
+            max_depth=None,
+            l2_regularization=0,
             random_state=random_state),
         
-        "LightGBM with SMOTE": LGBMClassifier(
+        "LGBM with SMOTE": LGBMClassifier(
             objective='binary', 
             learning_rate=0.05,
             n_estimators=500, 
             max_depth=7, 
             random_state=random_state),
         
-        "LightGBM with Class Weighting": LGBMClassifier(
+        "LGBM with Class Weights": LGBMClassifier(
             objective='binary', learning_rate=0.05,
             n_estimators=500, max_depth=7, 
             scale_pos_weight=scale_pos_weight, 
@@ -990,13 +1058,22 @@ def evaluate_models_with_resampling(X, y, test_size=0.3, random_state=45):
     # Evaluate each model
     for model_name, model in models.items():
         X_train_res, y_train_res = X_train, y_train
-        
+        sample_weight = None
+
         # Apply SMOTE only for the specified LightGBM model
-        if model_name == "LightGBM with SMOTE":
+        if model_name == "LGBM with SMOTE":
             X_train_res, y_train_res = smote.fit_resample(X_train, y_train)
+            X_train_res = pd.DataFrame(X_train_res, columns=X_train.columns)  # Preserve column names
+
+        # Apply sample weights for HistGradientBoostingClassifier
+        if model_name == "HGBT":
+            sample_weight = compute_sample_weight('balanced', y_train_res)
         
         # Fit the model
-        model.fit(X_train_res, y_train_res)
+        if model_name == "HGBT":
+            model.fit(X_train_res, y_train_res, sample_weight=sample_weight)
+        else:
+            model.fit(X_train_res, y_train_res)
         
         # Predict and evaluate
         y_pred = model.predict(X_test)
@@ -1020,9 +1097,145 @@ def evaluate_models_with_resampling(X, y, test_size=0.3, random_state=45):
 
     # Convert results to a pandas dataframe
     results_df = pd.DataFrame(results)
-    print("Classification Report:\n", classification_report(y_test, y_pred))
     # Print results
     print(results_df)
+
+
+
+def evaluate_thresholds(
+    thresholds: np.ndarray,
+    y_true: np.ndarray,
+    y_pred_proba: np.ndarray,
+    plot: bool = True,
+    save_path: str = None
+) -> tuple[list[float], list[float], list[float], list[float]]:
+    """
+    Evaluates precision, recall, F1-score, and alert rate across a range of probability thresholds 
+    for binary classification predictions. Optionally plots these metrics and saves the plot if save_path is provided.
+
+    Args:
+        thresholds (np.ndarray): Array of threshold values to evaluate.
+        y_true (np.ndarray): Ground truth binary labels.
+        y_pred_proba (np.ndarray): Predicted probabilities for the positive class.
+        plot (bool): If True, generates a plot showing metric scores across thresholds.
+        save_path (str): Path to save the plot image, if provided.
+
+    Returns:
+        tuple[list[float], list[float], list[float], list[float]]: Lists of recall, precision, 
+                                                                    F1-scores, and alert rates 
+                                                                    for each threshold.
+    """
+    # Initialize lists to store scores for each threshold
+    recalls, precisions, f1_scores, alert_rates = [], [], [], []
+
+    # Calculate metrics at each threshold
+    for t in thresholds:
+        binary_preds = y_pred_proba[:, 1] >= t
+        precisions.append(precision_score(y_true, binary_preds))
+        recalls.append(recall_score(y_true, binary_preds))
+        f1_scores.append(f1_score(y_true, binary_preds))
+        alert_rates.append(binary_preds.mean()) 
+
+    # Create DataFrame for easy plotting
+    metrics_df = pd.DataFrame({
+        "threshold": np.tile(thresholds, 4),
+        "score": f1_scores + recalls + precisions + alert_rates,
+        "metric": ["F1"] * len(thresholds) + ["Recall"] * len(thresholds) + 
+                  ["Precision"] * len(thresholds) + ["Alert Rate"] * len(thresholds)
+    })
+
+    # Identify optimal threshold based on maximum F1 score
+    optimal_index = np.argmax(f1_scores)
+    optimal_thr = thresholds[optimal_index]
+    optimal_f1 = f1_scores[optimal_index]
+    optimal_rc = recalls[optimal_index]
+    optimal_pr = precisions[optimal_index]
+    optimal_ar = alert_rates[optimal_index]
+
+    # Display optimal metrics
+    print("Optimal Threshold:", optimal_thr)
+    print(f"F1 Score at {optimal_thr}: {optimal_f1}")
+    print(f"Recall at {optimal_thr}: {optimal_rc}")
+    print(f"Precision at {optimal_thr}: {optimal_pr}")
+    print(f"Alert Rate at {optimal_thr}: {optimal_ar}")
+
+    # Plot metrics if requested
+    if plot:
+        fig = px.line(
+            metrics_df, x="threshold", y="score", color="metric",
+            title="Metrics per Threshold",
+            template="plotly_white"
+        )
+        fig.update_layout(
+            title_x=0.5,
+            title_font_size=20,
+            width=800,
+            height=600,
+            legend_title_text="Metric",
+            legend=dict(
+                font=dict(size=12),
+                bgcolor="rgba(235, 235, 235, 0.9)", 
+                bordercolor="LightGray",
+                borderwidth=1
+            ),
+            xaxis_title="Threshold",
+            yaxis_title="Score",
+            margin=dict(l=40, r=40, t=60, b=40),
+            plot_bgcolor="white",  
+            paper_bgcolor="white" 
+        )
+        fig.show()
+
+        # Save the plot if save_path is provided
+        if save_path:
+            fig.write_image(save_path)
+
+    return optimal_thr, recalls, precisions, f1_scores, alert_rates
+
+
+def tune_catboost(
+    n_trials: int, mlflc: MLflowCallback, X_train: pd.DataFrame, y_train: pd.Series, random_state: int = 45
+) -> FrozenTrial:
+    
+    # Define the objective function for Optuna
+    @mlflc.track_in_mlflow()
+    def objective(trial: Trial) -> float:
+        # Calculate class weights for imbalanced classes
+        class_weights = [1, (y_train.value_counts()[0] / y_train.value_counts()[1])]
+
+        # Define parameter search space
+        params = {
+            "learning_rate": 0.1,
+            "iterations": trial.suggest_int("iterations", 100, 1000),
+            "depth": trial.suggest_int("depth", 4, 10),
+            "l2_leaf_reg": trial.suggest_float("l2_leaf_reg", 1e-2, 10),
+            "class_weights": class_weights,
+            "random_seed": random_state,
+            "verbose": 0  
+        }
+        
+        mlflow.set_tag("model_name", "CatBoost")
+        mlflow.log_params(params)
+
+        # Initialize CatBoost with the trial's parameters
+        catboost = CatBoostClassifier(**params)
+
+        # Use StratifiedKFold for cross-validation
+        cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=random_state)
+        roc_auc = cross_val_score(catboost, X_train, y_train, cv=cv, scoring="roc_auc").mean()
+        print("ROC AUC (avg 5-fold):", roc_auc)
+
+        return roc_auc
+
+    # Create an Optuna study and specify maximization direction for ROC AUC
+    study = create_study(direction="maximize", study_name="catboost_tuning")
+    study.optimize(objective, n_trials=n_trials, callbacks=[mlflc])
+
+    # Print and return the best ROC AUC and parameters
+    print("Best ROC AUC:", study.best_value)
+    print("Best Parameters:", study.best_trial.params)
+    
+    return study.best_trial
 
 
 
