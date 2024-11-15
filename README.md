@@ -38,7 +38,7 @@ The chosen model demonstrates a balanced and insightful distribution of feature 
 
 By capturing critical insights from both original and engineered features, the model is better positioned to make robust predictions, showing that our approach has truly added value.
 
-## Matrics
+## Metrics
 
 ![thresholds](https://github.com/user-attachments/assets/f0ddd650-d4ce-4f96-a841-33d1ef523bd3)
 
