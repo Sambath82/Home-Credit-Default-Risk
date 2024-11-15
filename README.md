@@ -23,6 +23,14 @@ To achieve this objective, we’ve broken it down into the following five techni
 3. Develop a supervised model to classify behavior into "default" and "non-default" categories.
 4. Recommend a threshold that outperforms the current baseline in terms of F1 score and AUC-ROC score.
 5. Create an API endpoint for the trained model and deploy it for real-world use.
+ 
+## Model Selection
 
+We evaluated our models using ROC AUC, as it provides a reliable measure for binary classification tasks—especially when the labels are imbalanced, with the `default` class being the minority. We tested four models: **HistGradientBoosting (HGBT)**, **LightGBM with SMOTE**, **LightGBM with class weighting**, and **CatBoost with class weighting**.
 
+Among these, **CatBoost with class weighting** stood out as the top performer, achieving the highest AUC-ROC score of **0.7266**. This score highlights CatBoost’s strength in distinguishing between default and non-default cases, making it the best model for this task. After careful tuning, CatBoost reached peak performance with just **104 iterations** and achieved a test AUC-ROC of **0.73**, reflecting its reliability and accuracy in managing class imbalance effectively.
+
+## Model Explainability
+
+![shap_values](https://github.com/user-attachments/assets/c471d29a-416e-4187-9b5b-ac044e51bb4c)
 
