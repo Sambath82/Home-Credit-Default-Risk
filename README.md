@@ -26,6 +26,8 @@ To achieve this objective, we’ve broken it down into the following five techni
  
 ## Model Selection
 
+![target_dist_sampling](https://github.com/user-attachments/assets/66bbe5e4-e4a1-495e-a251-a4d61cb860a7)
+
 We evaluated our models using ROC AUC, as it provides a reliable measure for binary classification tasks—especially when the labels are imbalanced, with the `default` class being the minority. We tested four models: **HistGradientBoosting (HGBT)**, **LightGBM with SMOTE**, **LightGBM with class weighting**, and **CatBoost with class weighting**.
 
 Among these, **CatBoost with class weighting** stood out as the top performer, achieving the highest AUC-ROC score of around **0.73**. This score highlights CatBoost’s strength in distinguishing between default and non-default cases, making it the best model for this task. After careful tuning, CatBoost reached peak performance with just **147 iterations** and achieved a test AUC-ROC of **0.75**, reflecting its reliability and accuracy in managing class imbalance effectively.
