@@ -28,7 +28,7 @@ To achieve this objective, we’ve broken it down into the following five techni
 
 We evaluated our models using ROC AUC, as it provides a reliable measure for binary classification tasks—especially when the labels are imbalanced, with the `default` class being the minority. We tested four models: **HistGradientBoosting (HGBT)**, **LightGBM with SMOTE**, **LightGBM with class weighting**, and **CatBoost with class weighting**.
 
-Among these, **CatBoost with class weighting** stood out as the top performer, achieving the highest AUC-ROC score of **0.7266**. This score highlights CatBoost’s strength in distinguishing between default and non-default cases, making it the best model for this task. After careful tuning, CatBoost reached peak performance with just **104 iterations** and achieved a test AUC-ROC of **0.73**, reflecting its reliability and accuracy in managing class imbalance effectively.
+Among these, **CatBoost with class weighting** stood out as the top performer, achieving the highest AUC-ROC score of around **0.73**. This score highlights CatBoost’s strength in distinguishing between default and non-default cases, making it the best model for this task. After careful tuning, CatBoost reached peak performance with just **147 iterations** and achieved a test AUC-ROC of **0.75**, reflecting its reliability and accuracy in managing class imbalance effectively.
 
 ## Model Explainability
 
@@ -42,7 +42,7 @@ By capturing critical insights from both original and engineered features, the m
 
 ![thresholds](https://github.com/user-attachments/assets/f0ddd650-d4ce-4f96-a841-33d1ef523bd3)
 
-To evaluate the business impact of our model, we begin by setting an optimal threshold for our classifier. After analyzing different thresholds, we determined that the highest achievable F1 score is **0.29**. However, for this project, we’ve decided to prioritize recall over precision, as the business aims to identify as many default cases as possible, even at the cost of some over-prediction. As a result, we’ve set the threshold at **0.62**, which gives us the following performance metrics:
+To evaluate the business impact of our model, we begin by setting an optimal threshold for our classifier. After analyzing different thresholds, we determined that the highest achievable F1 score is **0.29**. However, for this project, we have decided to prioritize recall over precision, as the business aims to identify as many default cases as possible, even at the cost of some over-prediction. As a result, we have set the threshold at **0.62**, which gives us the following performance metrics:
 
 | Threshold  | 0.62 |
 |------------|------|
@@ -51,7 +51,7 @@ To evaluate the business impact of our model, we begin by setting an optimal thr
 | F1 Score   | 0.29 |
 | Alert Rate | 0.13 |
 
-While this choice aligns with the business goal of maximizing recall, it’s important to recognize some areas that need attention. The low precision (0.23) and F1 score (0.29) suggest that the model might be over-predicting the default class, leading to more false positives. Additionally, the alert rate of 0.13 means that only 13% of the predictions are true positives, indicating that there’s room for improvement.
+While this choice aligns with the business goal of maximizing recall, it is important to recognize some areas that need attention. The low precision (0.23) and F1 score (0.29) suggest that the model might be over-predicting the default class, leading to more false positives. Additionally, the alert rate of 0.13 means that only 13% of the predictions are true positives, indicating that there is room for improvement.
 
 These results highlight the need for further refinement in the model, possibly through better feature engineering, data quality improvements, or addressing any imbalances in the dataset. By optimizing these factors, we can enhance the model's performance, achieving more accurate predictions while maintaining the business focus on high recall.
 
