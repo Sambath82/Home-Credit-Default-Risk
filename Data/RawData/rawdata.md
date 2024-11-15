@@ -1,2 +1,1 @@
-
 The raw data is not provided here for two reasons: first, the dataset is too large to upload, and second, you can easily download it directly from the Kaggle website using this link: [Home Credit Default Risk Data](https://www.kaggle.com/competitions/home-credit-default-risk/data). Alternatively, you can use the `1_downloadKaggle.ipynb` notebook found in the "Notebook" folder to download the data via the Kaggle API.
